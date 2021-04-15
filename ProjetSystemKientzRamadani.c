@@ -6,12 +6,12 @@
 #include <string.h>
 #include <time.h>
 #include <signal.h>
-#include <time.h>
 #define TAILLE_MESSAGE 256
 
 typedef struct Gazon{
   char nom[TAILLE_MESSAGE];
   char prix[TAILLE_MESSAGE];
+  char stock[TAILLE_MESSAGE]; // ça peut etre plus malin de mettre un int
 } Gazon;
 
 typedef struct Ticket{
@@ -56,7 +56,7 @@ char *transporteur(void){
     }
 }
 
-char *client(void){
+char *acheteur(void){
     srand(time(NULL));
     int nbAlea;
     nbAlea = rand() % 2;
@@ -83,6 +83,8 @@ Gazon *tirageGazon(void){
       strcpy(gazon.nom, nom);
       char prix[TAILLE_MESSAGE] = "10";
       strcpy(gazon.prix, prix);
+	  char stock[TAILLE_MESSAGE] = "10000"; // voir si on ne met pas plutot un int plutot que char
+	  strcpy(gazon.stock, stock);
     }
     break;
     case 1:{
@@ -90,6 +92,8 @@ Gazon *tirageGazon(void){
       strcpy(gazon.nom, nom);
       char prix[TAILLE_MESSAGE] = "20";
       strcpy(gazon.prix, prix);
+	  char stock[TAILLE_MESSAGE] = "5000";
+	  strcpy(gazon.stock, stock);
     }
     break;
     default:{
@@ -109,15 +113,15 @@ int main(){
   Sac *pointeurSac = malloc(sizeof(Sac));
   Sac *pointeurSac2 = malloc(sizeof(Sac));
 
-  char cli[TAILLE_MESSAGE];
-  strcpy(cli, client());
+  char ach[TAILLE_MESSAGE];
+  strcpy(ach, acheteur());
   char ser[TAILLE_MESSAGE];
   strcpy(ser, serveur());
   char tra[TAILLE_MESSAGE];
   strcpy(tra, transporteur());
 
   printf("Bienvenue chez Gazon&Cie l'entreprise qui vend du gazon de haute qualité depuis 1897 !\n\n");
-  printf("Le scénario est le suivant : \n Le client s'appelle : %s, le serveur s'appelle : %s, accompagné de : %s le transporteur\n\n", cli, ser, tra);
+  printf("Dans cette simulation : \n L'acheteur s'appelle : %s, le serveur s'appelle : %s, accompagné de : %s le transporteur\n\n", ach, ser, tra);
   
   if(pipe(tube) != 0){
     exit(1);
@@ -130,21 +134,21 @@ int main(){
       exit(1);
     }
     case 0:{
-      //client
+      //acheteur
 
       //Etape2 (1s)
       sleep(1);
       read(tube[0], msgRecu, TAILLE_MESSAGE);
-      printf("(Client : %s) %s\n",cli, msgRecu);
+      printf("(Acheteur : %s) %s\n",ach, msgRecu);
 
       //Etape 3 (1s)
-      char msgAEnvoyer2[TAILLE_MESSAGE] = " Client m'a dit : Bonjour Monsieur !";
+      char msgAEnvoyer2[TAILLE_MESSAGE] = " Acheteur m'a dit : Bonjour Monsieur !";
       write(tube[1], msgAEnvoyer2, TAILLE_MESSAGE);
 
       //Etape5 (3s)
       sleep(2);
       read(tube[0], msgRecu, TAILLE_MESSAGE);
-      printf("(Client : %s) %s\n",cli, msgRecu);
+      printf("(Acheteur : %s) %s\n",ach, msgRecu);
 
       //Etape6 (3s)
       pointeurGazon = tirageGazon();
@@ -153,10 +157,10 @@ int main(){
       //Etape9 (6s)
       sleep(2);
       read(tube[0], msgRecu, TAILLE_MESSAGE);
-      printf("(Client : %s) %s\n", cli, msgRecu);
+      printf("(Acheteur : %s) %s\n", ach, msgRecu);
 
       //Etape10 (6s)
-      printf("Le client prend le/la %s\n", pointeurGazon->nom);
+      printf("L'acheteur prend le/la %s\n", pointeurGazon->nom);
 
       //Etape11 (6s)
       kill(pere_pid, SIGKILL);
@@ -182,7 +186,7 @@ int main(){
       //Etape 7 (4s)
       sleep(2);
       read(tube[0], msgRecu, TAILLE_MESSAGE);
-      char ajout[TAILLE_MESSAGE] = " Client m'a dit : Je voudrais un ";
+      char ajout[TAILLE_MESSAGE] = " Acheteur m'a dit : Je voudrais un ";
       strcat(ajout, msgRecu);
       printf("(Serveur : %s) %s\n", ser, ajout);
       
@@ -214,10 +218,10 @@ int main(){
         //Etape 2 (1s)
         sleep(1);
         read(tube[0], pointeurGazon2, sizeof(Gazon));
-        printf("\n(Serveur : %s) Le client m'a donné son %s\n", tra,pointeurGazon2->nom);
+        printf("\n(Serveur : %s) L'acheteur m'a donné son %s\n", tra,pointeurGazon2->nom);
 
         //Etape 2bis (1s)
-        printf("(Client : %s) Serveur m'a dit : Je scan le produit. Veuillez patientier.\n", cli);
+        printf("(Acheteur : %s) Serveur m'a dit : Je scan le produit. Veuillez patientier.\n", ach);
 
         //Etape 3 (1s)
         char msgAEnvoyer5[TAILLE_MESSAGE] = " Serveur m'a dit : Le prix a payer est ";
@@ -240,7 +244,7 @@ int main(){
 
 		//--On doit faire le nombre de palettes
         char buffer [TAILLE_MESSAGE];
-        sprintf(buffer, "%02d/%02d/%02d \n", timeComp->tm_mday,timeComp->tm_mon + 1,timeComp->tm_year + 1900);
+        sprintf(buffer, "%d\n", (surface%63)); //-------ici
         strcpy(pointeurTicket->nbPalette, buffer);
 
         //--Creation du Sac
@@ -266,12 +270,12 @@ int main(){
     }
     break;
     default : {
-        //Client
+        //Acheteur
 
         //Etape 1 (0s)
         char texte1[TAILLE_MESSAGE] = "(Serveur : " ;
         strcat(texte1, tra);
-        char texte2[TAILLE_MESSAGE] = ") Client m'a dit : Voici mon produit le/la ";
+        char texte2[TAILLE_MESSAGE] = ") Acheteur m'a dit : Voici mon produit le/la ";
         strcat(texte1,texte2);
         strcat(texte1, pointeurGazon->nom);
         char ajout[TAILLE_MESSAGE] = "\n ";
@@ -282,26 +286,26 @@ int main(){
         //Etape 4 (2s)
         sleep(2);
         read(tube[0], msgRecu, TAILLE_MESSAGE);
-        printf("(Client : %s) %s",cli, msgRecu);
+        printf("(Acheteur : %s) %s",ach, msgRecu);
 
         //Etape 5 (2s)
-        char msgAEnvoyer6[TAILLE_MESSAGE] = " Client m'a dit : Voici mon argent";
+        char msgAEnvoyer6[TAILLE_MESSAGE] = " Acheteur m'a dit : Voici mon argent";
         write(tube[1], msgAEnvoyer6, TAILLE_MESSAGE);
 
         //Etape 8 (4s)
         sleep(2);
         read(tube[0], pointeurSac2, sizeof(Sac));
 
-        printf("(Serveur) Client m'a dit : j'ai recu mon sac avec mon ticket d'un montant de %s euros, un total de %s palettes du gazon %s\n", (pointeurSac2->ticket).prix_tot, (pointeurSac2->ticket).nbPalette, (pointeurSac2->gazon).nom);
+        printf("(Serveur) Acheteur m'a dit : j'ai recu mon sac avec mon ticket d'un montant de %s euros, un total de %s palettes du gazon %s\n", (pointeurSac2->ticket).prix_tot, (pointeurSac2->ticket).nbPalette, (pointeurSac2->gazon).nom);
 
         //Etape 9 (4s)
-        char msgAEnvoyer7[TAILLE_MESSAGE] = " Client m'a dit : Au revoir !";
+        char msgAEnvoyer7[TAILLE_MESSAGE] = " Acheteur m'a dit : Au revoir !";
         write(tube[1], msgAEnvoyer7, TAILLE_MESSAGE);
 
         //Etape 12 (6s)
         sleep(2);
         read(tube[0], msgRecu, TAILLE_MESSAGE);
-        printf("(Client : %s) %s\n", cli, msgRecu);
+        printf("(Acheteur : %s) %s\n", ach, msgRecu);
          printf("\nLA SIMULATION EST TERMINEE");
     }
   }
