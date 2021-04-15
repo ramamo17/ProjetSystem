@@ -111,13 +111,13 @@ int main(){
 
   char cli[TAILLE_MESSAGE];
   strcpy(cli, client());
-  char ven[TAILLE_MESSAGE];
-  strcpy(ven, serveur());
-  char cai[TAILLE_MESSAGE];
-  strcpy(cai, transporteur());
+  char ser[TAILLE_MESSAGE];
+  strcpy(ser, serveur());
+  char tra[TAILLE_MESSAGE];
+  strcpy(tra, transporteur());
 
-  printf("BONJOUR ET BIENVENUE DANS LA SIMULATION DE BOUTIQUE POUR BEBE\n\n");
-  printf("Le scénario est le suivant : \n Le client s'appelle : %s, le serveur s'appelle : %s, accompagné de : %s la caissière\n\n", cli, ven, cai);
+  printf("Bienvenue chez Gazon&Cie l'entreprise qui vend du gazon de haute qualité depuis 1897 !\n\n");
+  printf("Le scénario est le suivant : \n Le client s'appelle : %s, le serveur s'appelle : %s, accompagné de : %s le transporteur\n\n", cli, ser, tra);
   
   if(pipe(tube) != 0){
     exit(1);
@@ -135,10 +135,10 @@ int main(){
       //Etape2 (1s)
       sleep(1);
       read(tube[0], msgRecu, TAILLE_MESSAGE);
-      printf("(Cliente : %s) %s\n",cli, msgRecu);
+      printf("(Client : %s) %s\n",cli, msgRecu);
 
       //Etape 3 (1s)
-      char msgAEnvoyer2[TAILLE_MESSAGE] = " Cliente m'a dit : Bonjour Monsieur !";
+      char msgAEnvoyer2[TAILLE_MESSAGE] = " Client m'a dit : Bonjour Monsieur !";
       write(tube[1], msgAEnvoyer2, TAILLE_MESSAGE);
 
       //Etape5 (3s)
@@ -173,7 +173,7 @@ int main(){
       //Etape4 (2s)
       sleep(2);
       read(tube[0], msgRecu, TAILLE_MESSAGE);
-      printf("(Serveur : %s) %s\n", ven, msgRecu);
+      printf("(Serveur : %s) %s\n", ser, msgRecu);
 
       //Etape4bis (2s)
       char msgAEnvoyer3[TAILLE_MESSAGE] = " Serveur m'a dit : Qu'est-ce qui vous ferait plaisir ?";
@@ -182,9 +182,9 @@ int main(){
       //Etape 7 (4s)
       sleep(2);
       read(tube[0], msgRecu, TAILLE_MESSAGE);
-      char ajout[TAILLE_MESSAGE] = " Cliente m'a dit : Je voudrais un ";
+      char ajout[TAILLE_MESSAGE] = " Client m'a dit : Je voudrais un ";
       strcat(ajout, msgRecu);
-      printf("(Serveur : %s) %s\n", ven, ajout);
+      printf("(Serveur : %s) %s\n", ser, ajout);
       
       //Etape 8 (4s)
       char msgAEnvoyer4[TAILLE_MESSAGE] = " Serveur m'a dit : Tenez voici le/la ";
@@ -214,13 +214,13 @@ int main(){
         //Etape 2 (1s)
         sleep(1);
         read(tube[0], pointeurGazon2, sizeof(Gazon));
-        printf("\n(Caissière : %s) Le client m'a donné son %s\n", cai,pointeurGazon2->nom);
+        printf("\n(Serveur : %s) Le client m'a donné son %s\n", tra,pointeurGazon2->nom);
 
         //Etape 2bis (1s)
-        printf("(Client : %s) Caissière m'a dit : Je scan le produit. Veuillez patientier.\n", cli);
+        printf("(Client : %s) Serveur m'a dit : Je scan le produit. Veuillez patientier.\n", cli);
 
         //Etape 3 (1s)
-        char msgAEnvoyer5[TAILLE_MESSAGE] = " Caissière m'a dit : Le prix a payer est ";
+        char msgAEnvoyer5[TAILLE_MESSAGE] = " Serveur m'a dit : Le prix a payer est ";
         strcat(msgAEnvoyer5, pointeurGazon2->prix);
         char ajout[TAILLE_MESSAGE] = " euros \n";
         strcat(msgAEnvoyer5, ajout);
@@ -230,7 +230,7 @@ int main(){
 
         sleep(2);
         read(tube[0], msgRecu, TAILLE_MESSAGE);
-        printf("(Caissière) %s\n", msgRecu);
+        printf("(Serveur) %s\n", msgRecu);
 
         //Etape 7 (3s)
 
@@ -238,11 +238,7 @@ int main(){
         Ticket * pointeurTicket = malloc(sizeof(Ticket));
         strcpy(pointeurTicket->prix_tot, pointeurGazon2->prix);
 
-        time_t actTime;
-        struct tm *timeComp;
-        time(&actTime);
-        timeComp = localtime(&actTime);
-
+		//--On doit faire le nombre de palettes
         char buffer [TAILLE_MESSAGE];
         sprintf(buffer, "%02d/%02d/%02d \n", timeComp->tm_mday,timeComp->tm_mon + 1,timeComp->tm_year + 1900);
         strcpy(pointeurTicket->nbPalette, buffer);
@@ -260,22 +256,22 @@ int main(){
 
         sleep(2);
         read(tube[0], msgRecu, TAILLE_MESSAGE);
-        printf("(Caissiere : %s) %s\n",cai, msgRecu);
+        printf("(Caissiere : %s) %s\n",tra, msgRecu);
 
         //Etape 11 (5s)
 
-        char msgAEnvoyer8[TAILLE_MESSAGE] = " Caissière m'a dit : Merci et à bientot !!";
+        char msgAEnvoyer8[TAILLE_MESSAGE] = " Serveur m'a dit : Merci et à bientot !!";
         write(tube[1], msgAEnvoyer8, TAILLE_MESSAGE);
 
     }
     break;
     default : {
-        //Cliente
+        //Client
 
         //Etape 1 (0s)
-        char texte1[TAILLE_MESSAGE] = "(Caissière : " ;
-        strcat(texte1, cai);
-        char texte2[TAILLE_MESSAGE] = ") Cliente m'a dit : Voici mon produit le/la ";
+        char texte1[TAILLE_MESSAGE] = "(Serveur : " ;
+        strcat(texte1, tra);
+        char texte2[TAILLE_MESSAGE] = ") Client m'a dit : Voici mon produit le/la ";
         strcat(texte1,texte2);
         strcat(texte1, pointeurGazon->nom);
         char ajout[TAILLE_MESSAGE] = "\n ";
@@ -286,26 +282,26 @@ int main(){
         //Etape 4 (2s)
         sleep(2);
         read(tube[0], msgRecu, TAILLE_MESSAGE);
-        printf("(Cliente : %s) %s",cli, msgRecu);
+        printf("(Client : %s) %s",cli, msgRecu);
 
         //Etape 5 (2s)
-        char msgAEnvoyer6[TAILLE_MESSAGE] = " Cliente m'a dit : Voici mon argent";
+        char msgAEnvoyer6[TAILLE_MESSAGE] = " Client m'a dit : Voici mon argent";
         write(tube[1], msgAEnvoyer6, TAILLE_MESSAGE);
 
         //Etape 8 (4s)
         sleep(2);
         read(tube[0], pointeurSac2, sizeof(Sac));
 
-        printf("(Caissière) Cliente m'a dit : j'ai recu mon sac avec mon ticket d'un montant de %s euros, à la nbPalette d'aujourd'hui le %s contenant le/la %s\n", (pointeurSac2->ticket).prix_tot, (pointeurSac2->ticket).nbPalette, (pointeurSac2->gazon).nom);
+        printf("(Serveur) Client m'a dit : j'ai recu mon sac avec mon ticket d'un montant de %s euros, un total de %s palettes du gazon %s\n", (pointeurSac2->ticket).prix_tot, (pointeurSac2->ticket).nbPalette, (pointeurSac2->gazon).nom);
 
         //Etape 9 (4s)
-        char msgAEnvoyer7[TAILLE_MESSAGE] = " Cliente m'a dit : Au revoir !";
+        char msgAEnvoyer7[TAILLE_MESSAGE] = " Client m'a dit : Au revoir !";
         write(tube[1], msgAEnvoyer7, TAILLE_MESSAGE);
 
         //Etape 12 (6s)
         sleep(2);
         read(tube[0], msgRecu, TAILLE_MESSAGE);
-        printf("(Cliente : %s) %s\n", cli, msgRecu);
+        printf("(Client : %s) %s\n", cli, msgRecu);
          printf("\nLA SIMULATION EST TERMINEE");
     }
   }
